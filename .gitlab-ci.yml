@@ -5,7 +5,7 @@ variables:
   notes_dir: src/notes/out
 
 default:
-  image: registry.gitlab.com/quantumanon/texstyle/texstyle-container:latest
+  image: registry.gitlab.com/quantumanon/texstyle/build-test-container:latest
   before_script:
     - sh configure
 
@@ -44,7 +44,6 @@ build-notes:
 
 test-texstyle:
   stage: test
-  image: registry.gitlab.com/quantumanon/texstyle/test-container:latest
   only:
     - master
     - develop
@@ -56,7 +55,6 @@ test-texstyle:
 
 test-notes:
   stage: test
-  image: registry.gitlab.com/quantumanon/texstyle/test-container:latest
   only:
     - master
     - develop
@@ -69,6 +67,7 @@ test-notes:
 
 docs-texstyle:
   stage: docs
+  image: registry.gitlab.com/quantumanon/texstyle/texstyle-container:latest
   only:
     - master
     - develop
@@ -84,6 +83,7 @@ docs-texstyle:
 
 docs-notes:
   stage: docs
+  image: registry.gitlab.com/quantumanon/texstyle/texstyle-container:latest
   only:
     - master
     - develop
@@ -99,7 +99,7 @@ docs-notes:
 
 
 package:
-  image: alpine
+  image: registry.gitlab.com/quantumanon/texstyle/packaging-container:latest
   stage: deploy
   only:
     - master
@@ -107,9 +107,6 @@ package:
   artifacts:
     paths:
       - "builds/${VERSION}"
-  before_script:
-    - apk add zip tar make
-    - sh configure
   dependencies:
     - build-texstyle
     - build-notes
