@@ -6,8 +6,10 @@ if [ -e ".build-config" ]; then
     source ".build-config"
 fi
 
-# get the containers
-./get-containers
+podman login "${REGISTRY}" -u "${REGISTRY_USERNAME}" -p "${REGISTRY_TOKEN}"
+buildah pull "${REGISTRY_DOMAIN}/texstyle-container"
+buildah pull "${REGISTRY_DOMAIN}/build-test-container"
+buildah pull "${REGISTRY_DOMAIN}/packaging-container"
 
 # clones a copy of the repository to a mountpoint and configures it
 setUp () {
@@ -39,7 +41,7 @@ runBuild () {
     local ctr=$(podman create \
                  -w "/home/texstyle" \
                  --net=host \
-                 "${REGISTRY_DOMAIN}/build_test-container" \
+                 "${REGISTRY_DOMAIN}/build-test-container" \
                  make build)
     local mnt=$(podman mount $ctr)
 
@@ -68,7 +70,7 @@ runTest () {
     local ctr=$(podman create \
                  -w "/home/texstyle" \
                  --net=host \
-                 "${REGISTRY_DOMAIN}/build_test-container" \
+                 "${REGISTRY_DOMAIN}/build-test-container" \
                  make test)
     local mnt=$(podman mount $ctr)
 
@@ -142,6 +144,6 @@ runPackage () {
 mkdir -p .tmp
 runBuild
 runTest
-# runDocs
-# runPackage
+runDocs
+runPackage
 rm -rf .tmp
