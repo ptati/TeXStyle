@@ -92,53 +92,36 @@ texlive-medium () {
     buildah rm $ctr
 }
 
-texlive-minimal () {
+texlive-small () {
     # create and mount containers
     local ctr=$(buildah from alpine)
     local mnt=$(buildah mount $ctr)
     # convenience command
     local brunch="buildah run --net host $ctr /bin/sh -c"
 
-    install-texlive "${ctr}" "${mnt}" "profiles/minimal"
+    install-texlive "${ctr}" "${mnt}" "profiles/small"
 
     # commit the new container and remove it
-    buildah commit $ctr "localhost/texlive-minimal"
+    buildah commit $ctr "localhost/texlive-small"
     buildah umount $ctr
     buildah rm $ctr
 }
 
-build_test-container () {
-    local ctr=$(buildah from localhost/texlive-minimal)
+build-test-container () {
+    local ctr=$(buildah from localhost/texlive-small)
     local mnt=$(buildah mount $ctr)
     brunch="buildah run --net host $ctr /bin/sh -c"
 
     ctan-mount "${mnt}"
 
     # install chktex and docstrip
-    $brunch "tlmgr install $REPO_FLAG docstrip chktex"
+    $brunch "tlmgr install $REPO_FLAG chktex lacheck"
+    $brunch "tlmgr path add"
 
     ctan-umount "${mnt}"
 
     # commit the new container and remove it
-    buildah commit $ctr "${REGISTRY_DOMAIN}/build_test-container"
-    buildah umount $ctr
-    buildah rm $ctr
-}
-
-test-container () {
-    local ctr=$(buildah from localhost/texlive-minimal)
-    local mnt=$(buildah mount $ctr)
-    brunch="buildah run --net host $ctr /bin/sh -c"
-
-    ctan-mount "${mnt}"
-
-    # install chktex
-    $brunch "tlmgr install $REPO_FLAG chktex"
-
-    ctan-umount "${mnt}"
-
-    # commit the new container and remove it
-    buildah commit $ctr "${REGISTRY_DOMAIN}/test-container"
+    buildah commit $ctr "${REGISTRY_DOMAIN}/build-test-container"
     buildah umount $ctr
     buildah rm $ctr
 }
@@ -153,6 +136,7 @@ texstyle-container () {
     # install any additional packages
     $brunch "tlmgr install $REPO_FLAG \
 lipsum bbm bbm-macros mdframed zref needspace enumitem"
+    $brunch "tlmgr path add"
 
     ctan-umount "${mnt}"
 
@@ -171,13 +155,13 @@ packaging-container () {
 }
 
 texlive-medium
+texlive-small
 texstyle-container
-texlive-minimal
- test-container
 build-test-container
 packaging-container
 
-# podman login "${REGISTRY}" -u "${REGISTRY_USERNAME}" -p "${REGISTRY_TOKEN}"
-# buildah push "${REGISTRY_DOMAIN}/test-container"
-# buildah push "${REGISTRY_DOMAIN}/texstyle-container"
-# buildah push "${REGISTRY_DOMAIN}/packaging-container"
+podman login "${REGISTRY}" -u "${REGISTRY_USERNAME}" -p "${REGISTRY_TOKEN}"
+buildah push "${REGISTRY_DOMAIN}/texstyle-container"
+buildah push "${REGISTRY_DOMAIN}/test-container"
+buildah push "${REGISTRY_DOMAIN}/build-test-container"
+buildah push "${REGISTRY_DOMAIN}/packaging-container"
