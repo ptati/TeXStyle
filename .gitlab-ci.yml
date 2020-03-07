@@ -22,6 +22,7 @@ build-texstyle:
   only:
     - master
     - develop
+    - build-system
   artifacts:
     expire_in: 1 hour
     paths:
@@ -34,6 +35,7 @@ build-notes:
   only:
     - master
     - develop
+    - build-system
   artifacts:
     expire_in: 1 hour
     paths:
@@ -47,6 +49,7 @@ test-texstyle:
   only:
     - master
     - develop
+    - build-system
   dependencies:
     - build-texstyle
   script:
@@ -58,6 +61,7 @@ test-notes:
   only:
     - master
     - develop
+    - build-system
   dependencies:
     - build-notes
   script:
@@ -71,6 +75,7 @@ docs-texstyle:
   only:
     - master
     - develop
+    - build-system
   artifacts:
     expire_in: 1 hour
     paths:
@@ -87,6 +92,7 @@ docs-notes:
   only:
     - master
     - develop
+    - build-system
   artifacts:
     expire_in: 1 hour
     paths:
@@ -103,7 +109,7 @@ package:
   stage: deploy
   only:
     - master
-    - develop
+    - build-system
   artifacts:
     paths:
       - "builds/${VERSION}"
